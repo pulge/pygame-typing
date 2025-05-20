@@ -44,7 +44,7 @@ class Game:
 		# Efeitos sonoros
 		# quando o jogador acerta uma palavra
 		self.CORRECT_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'correct.wav'))
-		self.CORRECT_SOUND.set_volume(0.5)
+		self.CORRECT_SOUND.set_volume(0.1)
 
 		# quando uma palavra passa do limite da tela e o jogador perde uma vida
 		self.HURT_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'hurt1.wav'))
@@ -52,19 +52,15 @@ class Game:
 		# quando o jogador perde todas as vidas
 		self.DEATH_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'death.wav'))
 
-		# quando o jogador sobe de nível
 		self.LEVELUP_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'levelup.wav'))
-		self.LEVELUP_SOUND.set_volume(0.3)
+		self.LEVELUP_SOUND.set_volume(0.1)
 
 
-		# musica de fundo, com duas variações, o randint escolhe a musica
 		self.BACK_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'back'+str(random.randint(0,1))+'.mp3'))
-		# caso o jogador continue jogando mesmo depois de a música acabar, ela reinicia
+		self.BACK_SOUND.set_volume(0.1)
 		self.BACK_SOUND_LOOPS = 1
-		# pega o tempo em que a música deve reiniciar
 		self.BACK_SOUND_TARGETTIME = ((self.BACK_SOUND.get_length()*1000) * self.BACK_SOUND_LOOPS)
 		
-		# musica de fim de jogo
 		self.GAMEOVER_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'gameover.mp3'))
 
 
@@ -131,46 +127,32 @@ class Game:
 		else:
 			self.WIN.blit(self.FONT.render(f'Accuracy: 100%', 1, c.WHITE), (500, self.HEIGHT-50))
 		
-
+		self.txt_input.draw(self.WIN)
 		# desenha e move cada palavra
 		for word in self.words:
 			word.move()
 			word.draw(self.WIN)
 
 		# desenha a caixa de texto
-		self.txt_input.draw(self.WIN)
+		
 
 		# atualiza a tela inteira
 		pg.display.flip()
 
-		# você poderia usar o 'pg.display.update()', porém ele só atualiza algumas regiões da tela
-		# para poupar memória, por isso eu uso o 'flip()'
-		# como é a função principal, o ideal é que atualize tudo
-
 
 	# Cria uma nova palavra
 	def create_word(self) -> None:
-
-		# aqui ele define a altura da palavra, porém ele faz com que elas estejam organizadas
-		# sempre em linhas corretas, para evitar qualquer tipo de erro
-		y = random.randint(0, int((self.HEIGHT-26-self.GUI_SIZE-32)/24)) * 24 + 32
-
-		# aqui ele testa a região escolhida para e compara com as 5 ultimas,
-		# ou seja, as palavras nunca vão aparecer duas vezes seguidas na mesma linha
-		# isso evita que elas fiquem uma em cima da outra
-		while y in self.used_lines:
-			y = random.randint(0, int((self.HEIGHT-26-self.GUI_SIZE-32)/24)) * 24 + 32
+		x = random.randint(0, int((self.WIDTH - 100) / 100)) * 100 + 50  # Grid spacing horizontally
+		while x in self.used_lines:
+			x = random.randint(0, int((self.WIDTH - 100) / 100)) * 100 + 50
 		if len(self.used_lines) >= self.used_lines_max:
 			del self.used_lines[0]
-		self.used_lines.append(y)
+		self.used_lines.append(x)
 
-
-		# define a palavra
-		word = WordTarget(self.word_list[random.randint(0, len(self.word_list)-1)], self.WIDTH, y, self.level)
-		# adiciona o objecto 'word' a lista de objeto de palavras
+		word = WordTarget(self.word_list[random.randint(0, len(self.word_list) - 1)], x, 0, self.level)
 		self.words.append(word)
-		# define o novo target time
-		self.target_time = self.current_time + random.randint(self.target_interval - 100,self.target_interval + 100)
+		self.target_time = self.current_time + random.randint(self.target_interval - 100, self.target_interval + 100)
+
 		#print(self.used_lines)
 
 	# valida a palavra digitada
@@ -212,7 +194,7 @@ class Game:
 
 	def check_words(self) -> None:
 		for word in self.words:
-			if word.x + word.get_width() < 0:
+			if word.y > self.HEIGHT - self.GUI_SIZE:
 				self.lives -= 1 
 				if self.lives < 0:
 					self.game_over()
@@ -230,8 +212,6 @@ class Game:
 		# caso o nível seja multiplo de 3, adicione uma vida extra
 		if self.level % 3 == 0:
 			self.lives += 1
-
-
 	
 	def game_over(self) -> None:
 		text = self.FONT_BIG.render('GAME OVER!', 1, c.WHITE)
@@ -243,8 +223,10 @@ class Game:
 
 		
 	def show_leaderboard(self) -> None:
+		fallback = round((self.hits - self.misses) / (self.hits + self.misses), 2) if (self.hits + self.misses) != 0 else 0
+   
 		if self.lb.new_entry:
-			self.lb.draw_textbox(self.WIN, self.score, round((self.hits-self.misses)/(self.hits+self.misses),2))
+			self.lb.draw_textbox(self.WIN, self.score, fallback)
 			self.lb.update_textbox(self.WIN)
 		else:
 			self.lb.__init__(self.WIDTH//2 - 200, 20, 400, 400, self.filename, False)
@@ -266,24 +248,40 @@ class Game:
 		while self.running: # game loop
 			stop_sound = True
 			while self.on_leaderboard:
-				self.score_final = int(self.score * round((self.hits-self.misses)/(self.hits+self.misses),2))
+				self.score_final = 0 if (self.hits + self.misses) == 0 else int(self.score * round((self.hits - self.misses) / (self.hits + self.misses), 2))
+
 				if stop_sound:
 					pg.mixer.stop()
 					self.GAMEOVER_SOUND.play()
 					stop_sound = False
 				self.CLOCK.tick(self.FPS)
+
 				for event in pg.event.get():
 					self.lb.txtbox.handle_event(event)
-					if event.type == pg.QUIT: # evento para sair do pygame
+					if event.type == pg.QUIT:
 						self.running = False
 						self.on_leaderboard = False
-					if event.type == pg.KEYDOWN:
+					elif event.type == pg.KEYDOWN:
 						if self.lb.new_entry:
 							if event.key == pg.K_RETURN:
-								#print(self.lb.txtbox.returned)
 								self.lb.save_score(self.lb.txtbox.returned, self.score_final)
 								self.lb.new_entry = False
-					
+						else:
+							# ESC = return to main menu
+							if event.key == pg.K_ESCAPE:
+								self.on_leaderboard = False
+								self.GAMEOVER_SOUND.stop()
+								stop_sound = False
+								self.score = 0 # pontuação
+								self.lives = 2 # vidas, o zero conta, então são 4
+								self.level = 1 # o nível é usado para escalar com a dificuldade do jogo
+								self.score_req = ((self.level+1)**3)*4 // 5 # score necessario para subir de nivel
+								self.hits = 0 # conta quantos acertos o jogador teve
+								self.char_hits = 0 # conta o numero de caracteres que o jogador acertou
+								self.misses = 0 # conta quantos erros o jogador cometeu
+								self.WPM = 0 # armazena o calculo de quantas palavras por minuto o jogador faz
+								self.score_final = 0 # pontuação * precisão (a pontuação que vai para o ranking)
+
 				self.show_leaderboard()
 
 

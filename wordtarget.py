@@ -17,8 +17,8 @@ class WordTarget:
 		screen.blit(self.txt_surface, (self.x, self.y))
 
 	def move(self) -> None: 
-		# move a palavra para a esquerda
-		self.x -= self.speed
+		# self.x -= self.speed
+		self.y += self.speed  # Fall downward instead of moving left
 
 	def get_width(self) -> int: 
 		# retorna o comprimento da palavra

@@ -13,8 +13,9 @@ class Organize:
 		for fname in self.files:
 			file = open(os.path.join(self.PATH, fname), 'r')
 			lines = file.readlines()
-			lines.sort(reverse=True, key=lambda x:int(x.split(';')[-1]))
-
+			lines = [line for line in lines if line.strip() and ';' in line and line.strip().split(';')[-1].isdigit()]
+			lines.sort(reverse=True, key=lambda x: int(x.strip().split(';')[-1]))
+   
 			file.close()
 			file = open(os.path.join(self.PATH, fname), 'w')
 			file.write(''.join(lines))
