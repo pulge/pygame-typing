@@ -40,11 +40,22 @@ class TextBox:
         width = max(200, self.txt_surface.get_width()+10)
         self.rect.w = width
 
-    def draw(self, screen: pg.display) -> None:
-        # Blit the text.
-        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
-        # Blit the rect.
+    def draw(self, screen: pg.Surface) -> None:
+        # Draw the border
         pg.draw.rect(screen, self.color, self.rect, 2)
+
+        # Save the current clipping region
+        prev_clip = screen.get_clip()
+
+        # Set clip region to the text box's inner area
+        clip_rect = self.rect.inflate(-10, -10)  # add padding
+        screen.set_clip(clip_rect)
+
+        # Draw the text with padding
+        screen.blit(self.txt_surface, (self.rect.x + 5, self.rect.y + 5))
+
+        # Restore previous clipping region
+        screen.set_clip(prev_clip)
 
     def get_returned(self) -> str:
         return self.returned

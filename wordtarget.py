@@ -1,9 +1,12 @@
 import pygame as pg
 import colors as c
+import os
 
 class WordTarget:
 	def __init__(self, text: str, x: int, y: int, level: int):
-		self.FONT = pg.font.SysFont('consolas', 24)
+		font_path = os.path.join('assets', 'font', 'PressStart2P-Regular.ttf')
+		self.FONT = pg.font.Font(font_path, 14)
+
 		self.COLOR = c.GREEN
 
 		self.text = text

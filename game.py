@@ -31,9 +31,10 @@ class Game:
 		# clock usado para registrar o tempo do jogo
 		self.CLOCK = pg.time.Clock()
 
-		# Fontes usadas dentro do jogo normal/grande
-		self.FONT = pg.font.SysFont('consolas', 24)
-		self.FONT_BIG = pg.font.SysFont('consolas', 80)
+		font_path = os.path.join('assets', 'font', 'PressStart2P-Regular.ttf')
+		self.FONT = pg.font.Font(font_path, 14)
+		self.FONT_BIG = pg.font.Font(font_path, 60)
+
 		
 
 		# GUI se refere ao espaço azul na parte inferior da tela
@@ -117,7 +118,7 @@ class Game:
 		
 		# Escreve a ui para o jogador, os pontos, as vidas e o nível
 		self.WIN.blit(self.FONT.render(f'Score: {self.score}', 1, c.WHITE), (10, self.HEIGHT-50))
-		self.WIN.blit(self.FONT.render(f'{self.score_req}', 1, c.ORANGE), (100, self.HEIGHT-28))
+		self.WIN.blit(self.FONT.render(f'HI-Score: {self.score_req}', 1, c.ORANGE), (10, self.HEIGHT-28))
 		self.WIN.blit(self.FONT.render(f'Lives: {self.lives}', 1, c.WHITE), (250, self.HEIGHT-50))
 		self.WIN.blit(self.FONT.render(f'Level: {self.level}', 1, c.WHITE), (250, self.HEIGHT-85))
 		self.WIN.blit(self.FONT.render(f'WPM: {self.WPM}', 1, c.WHITE), (500, self.HEIGHT-85))
@@ -133,8 +134,7 @@ class Game:
 			word.move()
 			word.draw(self.WIN)
 
-		# desenha a caixa de texto
-		
+		pg.draw.line(self.WIN, c.RED, (0, self.HEIGHT - self.GUI_SIZE - 10), (self.WIDTH, self.HEIGHT - self.GUI_SIZE - 10), 10)
 
 		# atualiza a tela inteira
 		pg.display.flip()
@@ -142,15 +142,29 @@ class Game:
 
 	# Cria uma nova palavra
 	def create_word(self) -> None:
-		x = random.randint(0, int((self.WIDTH - 100) / 100)) * 100 + 50  # Grid spacing horizontally
-		while x in self.used_lines:
-			x = random.randint(0, int((self.WIDTH - 100) / 100)) * 100 + 50
+		# Pick a random word first so we can measure it
+		word_text = random.choice(self.word_list)
+
+		# Create a temporary font surface to get its width
+		font_surface = self.FONT.render(word_text, True, c.GREEN)
+		word_width = font_surface.get_width()
+
+		# Ensure the word fits inside the screen width
+		max_x = self.WIDTH - word_width
+		x = random.randint(0, max_x)
+
+		# Avoid spawning too close to recently used x positions (optional)
+		while any(abs(x - prev) < 100 for prev in self.used_lines):  # adjust spacing
+			x = random.randint(0, max_x)
+
 		if len(self.used_lines) >= self.used_lines_max:
-			del self.used_lines[0]
+			self.used_lines.pop(0)
 		self.used_lines.append(x)
 
-		word = WordTarget(self.word_list[random.randint(0, len(self.word_list) - 1)], x, 0, self.level)
+		# Spawn word at top (y = 0)
+		word = WordTarget(word_text, x, 0, self.level)
 		self.words.append(word)
+
 		self.target_time = self.current_time + random.randint(self.target_interval - 100, self.target_interval + 100)
 
 		#print(self.used_lines)
@@ -194,7 +208,7 @@ class Game:
 
 	def check_words(self) -> None:
 		for word in self.words:
-			if word.y > self.HEIGHT - self.GUI_SIZE:
+			if word.y > self.HEIGHT - self.GUI_SIZE - 30:
 				self.lives -= 1 
 				if self.lives < 0:
 					self.game_over()
@@ -281,6 +295,8 @@ class Game:
 								self.misses = 0 # conta quantos erros o jogador cometeu
 								self.WPM = 0 # armazena o calculo de quantas palavras por minuto o jogador faz
 								self.score_final = 0 # pontuação * precisão (a pontuação que vai para o ranking)
+								# 🔧 Reset the leaderboard object (important!)
+								self.lb = Leaderboard(self.WIDTH // 2 - 200, 20, 400, 400, self.filename, True)
 
 				self.show_leaderboard()
 
