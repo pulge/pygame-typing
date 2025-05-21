@@ -77,7 +77,6 @@ class Game:
         title = self.FONT_BIG.render("TYPING GAME", True, c.WHITE)
         start_msg = self.FONT.render("Press ENTER to Start", True, c.ORANGE)
         quit_msg = self.FONT.render("Press ESC to Quit", True, c.RED)
-        print(("main menu"))
   
         while True:
             self.WIN.fill(c.BLACK)
@@ -92,7 +91,6 @@ class Game:
                     exit()
                 elif event.type == pg.KEYDOWN:
                     if event.key == pg.K_RETURN:
-                        print(("ENTER"))
                         return
                     elif event.key == pg.K_ESCAPE:
                         pg.quit()
