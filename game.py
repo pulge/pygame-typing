@@ -11,12 +11,17 @@ class Game:
         pg.init()
         pg.font.init()
         pg.mixer.init()
+        
+        self.WIDTH, self.HEIGHT = 1080, 600
+        self.WIN = pg.display.set_mode((self.WIDTH, self.HEIGHT))  # <-- Moved up here
+
+        self.load_menu_bg_frames() 
 
         pg.display.set_caption('Typing Game')
         icon = pg.image.load(os.path.join('assets', 'img', 'logo32.png'))
         pg.display.set_icon(icon)
 
-        self.WIDTH, self.HEIGHT = 800, 600
+        self.WIDTH, self.HEIGHT = 1080, 600
         self.WIN = None
         self.FPS = 60
         self.CLOCK = pg.time.Clock()
@@ -65,7 +70,7 @@ class Game:
         self.target_time = 0
         self.target_interval = 2000
 
-        self.txt_input = TextBox(10, self.HEIGHT - 90, 200)
+        self.txt_input = TextBox(600, self.HEIGHT - 80, 200, 8, False)
         self.lb = Leaderboard(self.WIDTH // 2 - 200, 20, 400, 400, self.filename, True)
         self.menu_requested = False
         self.BACK_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'back0.mp3'))
@@ -74,15 +79,25 @@ class Game:
 
     def show_main_menu(self):
         self.WIN = pg.display.set_mode((self.WIDTH, self.HEIGHT))
+
         title = self.FONT_BIG.render("TYPING GAME", True, c.WHITE)
         start_msg = self.FONT.render("Press ENTER to Start", True, c.ORANGE)
         quit_msg = self.FONT.render("Press ESC to Quit", True, c.RED)
-  
+
+        self.menu_frame_timer = pg.time.get_ticks()
+
         while True:
-            self.WIN.fill(c.BLACK)
+            now = pg.time.get_ticks()
+            if now - self.menu_frame_timer > self.menu_frame_interval:
+                self.menu_frame_index = (self.menu_frame_index + 1) % len(self.menu_frames)
+                self.menu_frame_timer = now
+
+            self.WIN.blit(self.menu_frames[self.menu_frame_index], (0, 0))
+
             self.WIN.blit(title, (self.WIDTH // 2 - title.get_width() // 2, 150))
             self.WIN.blit(start_msg, (self.WIDTH // 2 - start_msg.get_width() // 2, 300))
             self.WIN.blit(quit_msg, (self.WIDTH // 2 - quit_msg.get_width() // 2, 350))
+
             pg.display.update()
 
             for event in pg.event.get():
@@ -96,18 +111,20 @@ class Game:
                         pg.quit()
                         exit()
 
+
     def draw(self):
         self.WIN.fill(c.BLACK)
         pg.draw.rect(self.WIN, c.DARK_BLUE, self.GUI_BACK)
 
-        self.WIN.blit(self.TITLE, (10, 10))
-        self.WIN.blit(self.FONT.render(f'Score: {self.score}', 1, c.WHITE), (10, self.HEIGHT - 50))
-        self.WIN.blit(self.FONT.render(f'HI-Score: {self.score_req}', 1, c.ORANGE), (10, self.HEIGHT - 28))
-        self.WIN.blit(self.FONT.render(f'Lives: {self.lives}', 1, c.WHITE), (250, self.HEIGHT - 50))
-        self.WIN.blit(self.FONT.render(f'Level: {self.level}', 1, c.WHITE), (250, self.HEIGHT - 85))
-        self.WIN.blit(self.FONT.render(f'WPM: {self.WPM}', 1, c.WHITE), (500, self.HEIGHT - 85))
+        # self.WIN.blit(self.TITLE, (10, 10))
+        # self.WIN.blit(self.FONT.render(f'Score: {self.score}', 1, c.WHITE), (10, self.HEIGHT - 50))
+        # self.WIN.blit(self.FONT.render(f'HI-Score: {self.score_req}', 1, c.ORANGE), (10, self.HEIGHT - 28))
+        # self.WIN.blit(self.FONT.render(f'Lives: {self.lives}', 1, c.WHITE), (250, self.HEIGHT - 50))
+        # self.WIN.blit(self.FONT.render(f'Level: {self.level}', 1, c.WHITE), (250, self.HEIGHT - 85))
+        # self.WIN.blit(self.FONT.render(f'WPM: {self.WPM}', 1, c.WHITE), (500, self.HEIGHT - 85))
+        self.WIN.blit(self.FONT.render(f"Score: {self.score}     HI-Score: {self.score_req}     Lives: {self.lives}     ", True, c.WHITE), (10, self.HEIGHT - 90))
         accuracy = 100 if self.misses == 0 else round((self.hits - self.misses) / (self.hits + self.misses) * 100, 1)
-        self.WIN.blit(self.FONT.render(f'Accuracy: {accuracy}%', 1, c.WHITE), (500, self.HEIGHT - 50))
+        self.WIN.blit(self.FONT.render(f'Level: {self.level}     WPM: {self.WPM}     Accuracy: {accuracy}%', 1, c.WHITE), (10, self.HEIGHT - 50))
 
         self.txt_input.draw(self.WIN)
 
@@ -156,6 +173,26 @@ class Game:
                 self.HURT_SOUND.play()
                 self.words.remove(word)
                 return
+            
+    def load_menu_bg_frames(self):
+        sheet = pg.image.load(os.path.join('assets', 'img', 'bg.png')).convert()
+        self.menu_frames = []
+        
+        # Split sprite sheet into frames (assume 5 horizontal frames)
+        frame_count = 20
+        frame_width = sheet.get_width() // frame_count
+        frame_height = sheet.get_height()
+
+        for i in range(frame_count):
+            frame = sheet.subsurface((i * frame_width, 0, frame_width, frame_height))
+            frame = pg.transform.scale(frame, (self.WIDTH, self.HEIGHT))
+            self.menu_frames.append(frame)
+
+        self.menu_frame_index = 0
+        self.menu_frame_timer = pg.time.get_ticks()
+        self.menu_frame_interval = 150  # ms between frames
+
+
 
     def levelup(self):
         self.LEVELUP_SOUND.play()
@@ -181,7 +218,7 @@ class Game:
         else:
             self.lb.__init__(self.WIDTH // 2 - 200, 20, 400, 400, self.filename, False)
             self.lb.draw(self.WIN)
-            instruction = self.FONT.render("[M] Main Menu  [R] Restart", True, c.GRAY)
+            instruction = self.FONT.render("[M] Main Menu  [P] Play", True, c.GRAY)
             self.WIN.blit(instruction, (self.WIDTH // 2 - instruction.get_width() // 2, self.HEIGHT - 100))
         pg.display.update()
 
@@ -212,8 +249,10 @@ class Game:
                     elif event.type == pg.KEYDOWN:
                         if self.lb.new_entry:
                             if event.key == pg.K_RETURN:
-                                self.lb.save_score(self.lb.txtbox.returned, self.score_final)
-                                self.lb.new_entry = False
+                                name = self.lb.txtbox.get_returned()
+                                if name:  # only save if not empty
+                                    self.lb.save_score(name, self.score_final)
+                                    self.lb.new_entry = False
                         else:
                             if event.key == pg.K_m:
                                 self.on_leaderboard = False
@@ -222,7 +261,7 @@ class Game:
                                 self.show_main_menu()
                                 self.create_word()
                                 self.BACK_SOUND.play()
-                            elif event.key == pg.K_r:
+                            elif event.key == pg.K_p:
                                 self.on_leaderboard = False
                                 self.GAMEOVER_SOUND.stop()
                                 self.reset_game()
@@ -239,6 +278,9 @@ class Game:
                     if event.key == pg.K_RETURN:
                         self.validate_words()
                         self.WPM = self.calculate_wpm()
+                    elif event.key == pg.K_ESCAPE:
+                        self.show_main_menu()
+
             self.current_time = pg.time.get_ticks()
             if self.current_time >= self.target_time:
                 self.create_word()

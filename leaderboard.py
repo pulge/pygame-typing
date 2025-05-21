@@ -7,16 +7,14 @@ import os
 
 class Leaderboard:
 	def __init__(self, x: int, y: int, w: int, h: int, game: str, new_entry: bool=False):
-		self.FONT = pg.font.SysFont('consolas', 24)
+		font_path = os.path.join('assets', 'font', 'PressStart2P-Regular.ttf')
+		self.FONT = pg.font.Font(font_path, 18)
 		self.game = game
 		self.new_entry = new_entry
 
 		o = Organize()
-		# se eu tivesse mais arquivos no 'leaderboads' eu iria colocar o 'organize_file'
-		# mas como são poucos uso o 'organize_all' mesmo
 
 		o.organize_all()
-		# o.organize_file(game+'.txt')
 
 		self.file = open(os.path.join('leaderboards', self.game+'.txt'), 'r')
 		self.scores = []
@@ -28,18 +26,19 @@ class Leaderboard:
 		self.w = w
 		self.h = h
 
-
-
 		self.BACKGROUND = pg.Rect(x, y, w, h)
 		self.BACKGROUND_LINE = pg.Rect(x+8, y+8, w-16, h-16)
 		self.BACKGROUND_IN = pg.Rect(x+10, y+10, w-20, h-20)
-		self.BACKGROUND_TEXTBOX = pg.Rect(x, y, w, 32+12+32)
-		self.txtbox = TextBox(self.x+6, self.y+6, self.w-12)
+		self.BACKGROUND_TEXTBOX = pg.Rect(x, y, w, 32+12+52)
+		# self.txtbox = TextBox(self.x+6, self.y+6, self.w-12)
+		self.txtbox = TextBox(self.x+6, self.y+6, self.w-12, 10, True)
 
 	def draw_textbox(self, screen, score, accuracy):
 		pg.draw.rect(screen, c.DARK_BLUE, self.BACKGROUND_TEXTBOX)
+		prompt = self.FONT.render('Input Name', 1, c.WHITE)
+		screen.blit(prompt, (int(self.x + (self.w/2) - (prompt.get_width()/2)), self.y+32+13))
 		text = self.FONT.render(f'Score: {score} x {accuracy} = {int(score*accuracy)}', 1, c.WHITE)
-		screen.blit(text, (int(self.x + (self.w/2) - (text.get_width()/2)), self.y+32+10))
+		screen.blit(text, (int(self.x + (self.w/2) - (text.get_width()/2)), self.y+32+40))	
 
 	def update_textbox(self, screen):
 		self.txtbox.draw(screen)
