@@ -12,7 +12,7 @@ class Game:
         pg.font.init()
         pg.mixer.init()
         
-        self.WIDTH, self.HEIGHT = 1080, 600
+        self.WIDTH, self.HEIGHT = 1280, 720
         self.WIN = pg.display.set_mode((self.WIDTH, self.HEIGHT))  # <-- Moved up here
 
         self.load_menu_bg_frames() 
