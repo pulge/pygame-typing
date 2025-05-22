@@ -31,7 +31,7 @@ class Leaderboard:
 		self.BACKGROUND_IN = pg.Rect(x+10, y+10, w-20, h-20)
 		self.BACKGROUND_TEXTBOX = pg.Rect(x, y, w, 32+12+52)
 		# self.txtbox = TextBox(self.x+6, self.y+6, self.w-12)
-		self.txtbox = TextBox(self.x+6, self.y+6, self.w-12, 10, True)
+		self.txtbox = TextBox(self.x+6, self.y+6, self.w-12, 3, True)
 
 	def draw_textbox(self, screen, score, accuracy):
 		pg.draw.rect(screen, c.DARK_BLUE, self.BACKGROUND_TEXTBOX)

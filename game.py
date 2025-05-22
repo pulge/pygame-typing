@@ -40,6 +40,7 @@ class Game:
         self.LEVELUP_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'levelup.wav'))
         self.LEVELUP_SOUND.set_volume(0.1)
         self.GAMEOVER_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'gameover.mp3'))
+        self.GAMEOVER_SOUND.set_volume(0.1)
 
         self.word_list = []
         self.filename = game
@@ -70,7 +71,7 @@ class Game:
         self.target_time = 0
         self.target_interval = 2000
 
-        self.txt_input = TextBox(600, self.HEIGHT - 80, 200, 8, False)
+        self.txt_input = TextBox(450, self.HEIGHT - 80, 200, 8, True)
         self.lb = Leaderboard(self.WIDTH // 2 - 200, 20, 400, 400, self.filename, True)
         self.menu_requested = False
         self.BACK_SOUND = pg.mixer.Sound(os.path.join('assets', 'sfx', 'back0.mp3'))
@@ -79,7 +80,11 @@ class Game:
 
     def show_main_menu(self):
         self.WIN = pg.display.set_mode((self.WIDTH, self.HEIGHT))
-
+        self.MENU = pg.mixer.Sound(os.path.join('assets', 'sfx', 'back1.mp3'))
+        self.MENU.set_volume(0.1)
+        self.MENU_LOOP = 1
+        
+        self.MENU.play()
         title = self.FONT_BIG.render("TYPING GAME", True, c.WHITE)
         start_msg = self.FONT.render("Press ENTER to Start", True, c.ORANGE)
         quit_msg = self.FONT.render("Press ESC to Quit", True, c.RED)
@@ -106,6 +111,7 @@ class Game:
                     exit()
                 elif event.type == pg.KEYDOWN:
                     if event.key == pg.K_RETURN:
+                        self.MENU.stop()
                         return
                     elif event.key == pg.K_ESCAPE:
                         pg.quit()
@@ -122,10 +128,12 @@ class Game:
         # self.WIN.blit(self.FONT.render(f'Lives: {self.lives}', 1, c.WHITE), (250, self.HEIGHT - 50))
         # self.WIN.blit(self.FONT.render(f'Level: {self.level}', 1, c.WHITE), (250, self.HEIGHT - 85))
         # self.WIN.blit(self.FONT.render(f'WPM: {self.WPM}', 1, c.WHITE), (500, self.HEIGHT - 85))
-        self.WIN.blit(self.FONT.render(f"Score: {self.score}     HI-Score: {self.score_req}     Lives: {self.lives}     ", True, c.WHITE), (10, self.HEIGHT - 90))
+        self.WIN.blit(self.FONT.render(f"Score: {self.score}     HI-Score: {self.score_req}", True, c.WHITE), (50, self.HEIGHT - 80))
         accuracy = 100 if self.misses == 0 else round((self.hits - self.misses) / (self.hits + self.misses) * 100, 1)
-        self.WIN.blit(self.FONT.render(f'Level: {self.level}     WPM: {self.WPM}     Accuracy: {accuracy}%', 1, c.WHITE), (10, self.HEIGHT - 50))
-
+        self.WIN.blit(self.FONT.render(f'Level: {self.level}     WPM: {self.WPM}', 1, c.WHITE), (50, self.HEIGHT - 40))
+        
+        self.WIN.blit(self.FONT.render(f'Accuracy: {accuracy}%', 1, c.WHITE), (self.WIDTH - 350, self.HEIGHT - 40))
+        self.WIN.blit(self.FONT.render(f"Lives: {self.lives}     ", True, c.WHITE), (self.WIDTH - 350, self.HEIGHT - 80))
         self.txt_input.draw(self.WIN)
 
         for word in self.words:
@@ -204,7 +212,9 @@ class Game:
 
     def game_over(self):
         text = self.FONT_BIG.render('GAME OVER!', 1, c.WHITE)
-        self.WIN.blit(text, (self.WIDTH / 2 - text.get_width() / 2, self.HEIGHT / 2 - text.get_height() / 2))
+        textred = self.FONT_BIG.render('GAME OVER!', 1, c.RED)
+        self.WIN.blit(text, (self.WIDTH / 2 - text.get_width() / 2, (self.HEIGHT / 2 - text.get_height() / 2) - 50))
+        self.WIN.blit(textred, ((self.WIDTH / 2 - text.get_width() / 2) + 2, ((self.HEIGHT / 2 - text.get_height() / 2) + 2) - 50))
         self.DEATH_SOUND.play()
         pg.display.update()
         pg.time.delay(2000)
