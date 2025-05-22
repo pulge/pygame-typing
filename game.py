@@ -85,9 +85,11 @@ class Game:
         self.MENU_LOOP = 1
         
         self.MENU.play()
-        title = self.FONT_BIG.render("TYPING GAME", True, c.WHITE)
+        title = self.FONT_BIG.render("TYPING GAME", True, c.GRAY)
+        title1 = self.FONT_BIG.render("TYPING GAME", True, c.DARK_GREEN)
         start_msg = self.FONT.render("Press ENTER to Start", True, c.ORANGE)
         quit_msg = self.FONT.render("Press ESC to Quit", True, c.RED)
+        credit = self.FONT.render("Lyeanne Gadiano      Eric Ebuna       Daniecy Calica", True, c.DARK_GREEN)
 
         self.menu_frame_timer = pg.time.get_ticks()
 
@@ -100,8 +102,10 @@ class Game:
             self.WIN.blit(self.menu_frames[self.menu_frame_index], (0, 0))
 
             self.WIN.blit(title, (self.WIDTH // 2 - title.get_width() // 2, 150))
+            self.WIN.blit(title1, ((self.WIDTH // 2 - title.get_width() // 2) + 2, 150 + 2))
             self.WIN.blit(start_msg, (self.WIDTH // 2 - start_msg.get_width() // 2, 300))
             self.WIN.blit(quit_msg, (self.WIDTH // 2 - quit_msg.get_width() // 2, 350))
+            self.WIN.blit(credit, (self.WIDTH // 2 - credit.get_width() // 2, self.HEIGHT - 50))
 
             pg.display.update()
 

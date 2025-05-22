@@ -6,3 +6,6 @@ GREEN = (0,255,0)
 ORANGE = (255, 165, 0)
 RED = (200,0,0)
 DARK_BLUE = (0,45,100)
+DARK_GREEN  = (0, 100, 0)
+NAVY        = (0, 0, 128)
+
